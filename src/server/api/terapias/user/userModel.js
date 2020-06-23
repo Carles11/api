@@ -27,4 +27,4 @@ const UserSchema = new Schema({
   },
 })
 
-module.exports = mongoose.model('terapeuticos_user', UserSchema)
+module.exports = mongoose.model('User', UserSchema)
