@@ -13,8 +13,8 @@ export default () => {
   if (config.env !== 'test') {
     /* eslint-disable no-console */
     db.on('connected', () => console.log(colors.green('[  DB connected.  ]')))
-    db.on('error', err => console.error(colors.red(err)))
-    db.on('disconnected', () => console.log(colors.red('[  DB connected.  ]')))
+    db.on('error', (err) => console.error(colors.red(err)))
+    db.on('disconnected', () => console.log(colors.red('[  DB disconnected.  ]')))
     /* eslint-enable no-console */
   }
 }
