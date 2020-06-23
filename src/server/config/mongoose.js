@@ -6,7 +6,7 @@ import config from './index'
 
 export default () => {
   mongoose.Promise = global.Promise
-  mongoose.connect(config.db.url, { useNewUrlParser: true })
+  mongoose.connect(config.db.url, { useNewUrlParser: true, useUnifiedTopology: true })
 
   const db = mongoose.connection
 
