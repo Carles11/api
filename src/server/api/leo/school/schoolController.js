@@ -78,7 +78,7 @@ const setMail = school => {
 
   transporter.sendMail({
     from: 'leoleoconcurso@gmail.com', // sender address
-    to: `txiverke@gmail.com, ${school.email}`, // list of receivers
+    to: `carles@crix.design, ${school.email}`, // list of receivers
     subject: 'Nueva escuela registrada!!', // Subject line
     generateTextFromHTML: true,
     html: `
