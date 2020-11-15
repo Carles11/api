@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer'
 export const list = async (req, res) => {
   try {
     const schools = await School.find({})
+    console.log("GET_SCHOOOOOOOOOOOOOOOLS", schools)
     return res.status(200).json({ success: true, data: schools })
   } catch (err) {
     return res.status(500).json({ success: false, data: err })

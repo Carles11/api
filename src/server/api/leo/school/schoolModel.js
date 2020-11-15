@@ -38,5 +38,4 @@ const SchoolSchema = Schema({
     default: currentYear,
   },
 })
-
-module.exports = mongoose.model('leo_School', SchoolSchema)
+module.exports = mongoose.model('leo_schools', SchoolSchema)
