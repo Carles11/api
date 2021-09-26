@@ -10,6 +10,7 @@ import errorHandler from '../middleware/errorHandler'
 const checkToken = expressJwt({ secret: config.secrets.jwt })
 
 const getModel = (type: string = '') => {
+
   switch (type) {
     case 'leo': return leo_User
     default: return User
@@ -20,22 +21,20 @@ export const decodeToken = () => (req: Object, res: Object, next: Function) => {
   if (req.headers && req.headers['access-token']) {
     req.headers.authorization = `Bearer ${req.headers['access-token']}`
   }
-console.log("DECODING-TOKEN", req.headers)
+  console.log('DECODING-TOKEN', req.headers)
   checkToken(req, res, next)
 }
 
 export const getFreshUser = (type: string = '') => (req: Object, res: Object, next: Function) => {
   const currentUser = getModel(type)
-  console.log("VERIFYING currentUUUUUUUUUUUser", currentUser)
 
   currentUser.findById(req.user._id)
     .then(user => {
       if (!user) {
         return res.status(401).json({ success: false, data: 'Unauthorized User' })
-      } else {
-        req.user = user
-        next()
       }
+      req.user = user
+      next()
     }, err => {
       next(err)
     })
@@ -43,12 +42,10 @@ export const getFreshUser = (type: string = '') => (req: Object, res: Object, ne
 
 
 export const verifyUser = (type: string = '') => (req: Object, res: Object, next: Function) => {
-  
   const currentUser = getModel(type)
   const username = req.body.username
   const password = req.body.password
-  console.log("VERIFYING USERRR", username)
-  console.log("VERIFYING password", password)
+ 
 
   // if no username or password then send
   if (!username || !password) {
