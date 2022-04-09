@@ -1,8 +1,8 @@
-import Document from './teamModel'
+import Team from './teamModel'
 
 export const list = async (req, res, next) => {
   try {
-    const members = await Document.find({})
+    const members = await Team.find({})
     console.log('MMMememememem', members)
     res.status(200).json({
       success: true,
@@ -11,15 +11,17 @@ export const list = async (req, res, next) => {
           firstName: 'Carles',
           lastName: 'del Río',
           email: 'contact@dev-punk.com',
-          position: 'CTO & Founder',
+          role: 'CTO & Founder',
+          img: '',
           twitterUrl: '',
           linkedInUrl: '',
         },
         {
           firstName: 'Xavi',
           lastName: 'del Río',
+          img: '',
           email: 'contact@dev-punk.com',
-          position: 'CEO & Founder',
+          role: 'CEO & Founder',
           twitterUrl: '',
           linkedInUrl: '',
         },
