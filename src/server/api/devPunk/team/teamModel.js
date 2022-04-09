@@ -1,14 +1,6 @@
 import mongoose, { Schema } from 'mongoose'
 
 const TeamSchema = new Schema({
-  firstname: {
-    type: String,
-    required: true,
-  },
-  lastname: {
-    type: String,
-    required: true,
-  },
   description: {
     type: String,
     required: true,
@@ -21,7 +13,15 @@ const TeamSchema = new Schema({
     type: String,
     required: true,
   },
-  twitter_url: {
+  role: {
+    type: String,
+    required: true,
+  },
+  firstname: {
+    type: String,
+    required: true,
+  },
+  lastname: {
     type: String,
     required: true,
   },
@@ -29,7 +29,7 @@ const TeamSchema = new Schema({
     type: String,
     required: true,
   },
-  role: {
+  twitter_url: {
     type: String,
     required: true,
   },
@@ -39,4 +39,4 @@ const TeamSchema = new Schema({
   },
 })
 
-module.exports = mongoose.model('devPunk_Member', TeamSchema)
+module.exports = mongoose.model('devpunk_Member', TeamSchema)
