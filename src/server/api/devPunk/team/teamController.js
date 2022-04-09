@@ -4,7 +4,7 @@ export const list = async (req, res, next) => {
   try {
     const members = await Document.find({})
     console.log('MMMememememem', members)
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       data: [
         {
