@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 import Team from './teamModel'
 
 export const list = async (req, res, next) => {

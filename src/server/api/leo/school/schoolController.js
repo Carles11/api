@@ -16,14 +16,14 @@ export const create = async (req, res) => {
      * @todo xvila - unique is not working in School
      * model bc it was added when the ddbb already had data
      */
-    const emailExist = await School.find({ email: req.body.email })
-    if (!!emailExist.length) {
-      return res.status(409).json({
-        success: false,
-        data:
-          'Esta dirección de correo ya existe. Para modificar su perfil, contacte con la administradora c.cid@hws.schule',
-      })
-    }
+    // const emailExist = await School.find({ email: req.body.email })
+    // if (!!emailExist.length) {
+    //   return res.status(409).json({
+    //     success: false,
+    //     data:
+    //       'Esta dirección de correo ya existe. Para modificar su perfil, contacte con la administradora c.cid@hws.schule',
+    //   })
+    // }
     const newSchool = await new School(req.body)
     await newSchool.save()
     const schools = await School.find({})
@@ -64,7 +64,7 @@ export const schoolById = async (req, res, next, id) => {
   }
 }
 
-const setMail = school => {
+const setMail = (school) => {
   let transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
