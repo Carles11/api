@@ -22,7 +22,7 @@ const SchoolSchema = Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
+    // unique: true,
   },
   category: {
     type: Array,
