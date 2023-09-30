@@ -26,6 +26,9 @@ const SchoolSchema = Schema({
   category: {
     type: Array,
   },
+  interestCheckbox: {
+    type: Boolean,
+  },
   cp: {
     type: String,
   },

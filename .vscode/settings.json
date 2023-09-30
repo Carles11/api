@@ -1,0 +1,18 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // Enable per-language
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  // Set the default
+  "editor.formatOnSave": true,
+  // Whether to add a semicolon at the end of every line
+  "prettier.semi": false,
+  "prettier.singleQuote": true,
+  "prettier.jsxSingleQuote": true,
+  "prettier.endOfLine": "crlf",
+  "editor.tabCompletion": "on",
+  "editor.fontLigatures": true,
+  "python.linting.pylintEnabled": false
+}
