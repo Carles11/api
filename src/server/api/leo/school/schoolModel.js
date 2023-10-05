@@ -29,6 +29,12 @@ const SchoolSchema = Schema({
   interestCheckbox: {
     type: Boolean,
   },
+  bases_consent: {
+    type: Boolean,
+  },
+  image_consent: {
+    type: Boolean,
+  },
   cp: {
     type: String,
   },
