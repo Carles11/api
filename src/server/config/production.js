@@ -10,6 +10,6 @@ module.exports = {
   },
   mail: {
     user: process.env.USER_MAIL,
-    pass: process.env.PASS_MAIL
-  }
+    pass: process.env.PASS_MAIL,
+  },
 }

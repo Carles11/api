@@ -23,7 +23,7 @@ export default (app: Object) => {
 
   app.use(bodyParser.json({ limit: '10mb' }))
   app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
-  
+
   app.use('/static', express.static(path.join(__dirname, 'public')))
   app.use(favicon('./public/favicon.ico'))
 }

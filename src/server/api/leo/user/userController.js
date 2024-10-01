@@ -3,7 +3,7 @@ import User from './userModel'
 export const list = async (req, res, next) => {
   try {
     const users = await User.find({})
-    return res.status(201).json({ success: true, data: users})
+    return res.status(201).json({ success: true, data: users })
   } catch (err) {
     return res.status(500).json({ success: false, data: err })
   }
@@ -20,7 +20,7 @@ export const create = async (req, res) => {
   }
 }
 
-export const userById =  async (req, res, next, id) => {
+export const userById = async (req, res, next, id) => {
   try {
     req.user = await User.findById(id)
     next()
@@ -40,7 +40,7 @@ export const read = (req, res) => {
   return res.status(200).json({ success: true, data: user })
 }
 
-export const update = async(req, res) => {
+export const update = async (req, res) => {
   try {
     const updatedUser = Object.assign(req.user, req.body)
     const user = await updatedUser.save()

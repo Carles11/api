@@ -16,16 +16,15 @@ const imageSchema = new Schema({
   },
   year: {
     type: Number,
-    required: true
+    required: true,
   },
   caption: {
-    type: String
+    type: String,
   },
   created: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 })
 
 module.exports = mongoose.model('leo_Image', imageSchema)
-

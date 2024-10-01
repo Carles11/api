@@ -10,9 +10,7 @@ function removeAsset(id, res) {
 
 export const list = async (req: Object, res: Object) => {
   try {
-    const posts = await Post.find({})
-      .populate('creator')
-      .exec()
+    const posts = await Post.find({}).populate('creator').exec()
     res.status(200).json(posts)
   } catch (err) {
     return errorHandler(err, res)

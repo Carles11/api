@@ -26,10 +26,7 @@ const storage = cloudinaryStorage({
 const upload = multer({ storage })
 const router = Router()
 
-router
-  .route('/')
-  .get(ctrl.list)
-  .post(checkUser, upload.single('file'), ctrl.create)
+router.route('/').get(ctrl.list).post(checkUser, upload.single('file'), ctrl.create)
 
 router
   .route('/:postId')

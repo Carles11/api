@@ -7,15 +7,14 @@ let projects = []
 let id = ''
 
 describe('[  PROJECT CRUD  ]', () => {
-
   describe('[ Create a project ]', () => {
     const body = {
       title: 'Testing create projects.',
-      file: { 
+      file: {
         originalname: 'test.png',
-        filename: 'test.png' 
+        filename: 'test.png',
       },
-      summary: 'test'
+      summary: 'test',
     }
 
     it('should return Unauthorized', async () => {
@@ -27,25 +26,19 @@ describe('[  PROJECT CRUD  ]', () => {
     it('should create a new post', async () => {
       const user = {
         username: 'txiverke',
-        password: 'testing'
+        password: 'testing',
       }
 
-      const signin = await request(app)
-        .post('/auth/signin')
-        .send(user)
-        .set('Content-Type', 'application/json')
+      const signin = await request(app).post('/auth/signin').send(user).set('Content-Type', 'application/json')
 
       const token = signin.body.token
-  
-      const response = await request(app)
-        .post('/api/blog/projects')
-        .send(body)
-        .set('access-token', token)
+
+      const response = await request(app).post('/api/blog/projects').send(body).set('access-token', token)
 
       expect(response.statusCode).toEqual(200)
       expect(response.body).toBeInstanceOf(Array)
 
-      const newProject = response.body.find(item => item.summary === 'test')
+      const newProject = response.body.find((item) => item.summary === 'test')
       id = newProject._id
       projects = [...response.body]
     })
@@ -75,32 +68,26 @@ describe('[  PROJECT CRUD  ]', () => {
   describe('Update a project', () => {
     const body = {
       title: 'Updated title test',
-      summary: 'New summary test'
+      summary: 'New summary test',
     }
 
     it('should update a post', async () => {
       const user = {
         username: 'txiverke',
-        password: 'testing'
+        password: 'testing',
       }
 
-      const signin = await request(app)
-        .post('/auth/signin')
-        .send(user)
-        .set('Content-Type', 'application/json')
+      const signin = await request(app).post('/auth/signin').send(user).set('Content-Type', 'application/json')
 
       const token = signin.body.token
-  
-      const response = await request(app)
-        .put(`/api/blog/projects/${id}`)
-        .send(body)
-        .set('access-token', token)
+
+      const response = await request(app).put(`/api/blog/projects/${id}`).send(body).set('access-token', token)
 
       expect(response.statusCode).toEqual(200)
       expect(response.body).toBeInstanceOf(Array)
 
       projects = [...response.body]
-      const project = projects.find(item => item._id === id)
+      const project = projects.find((item) => item._id === id)
       expect(project.title).toEqual(body.title)
     })
   })
@@ -109,19 +96,14 @@ describe('[  PROJECT CRUD  ]', () => {
     it('should delete a post', async () => {
       const user = {
         username: 'txiverke',
-        password: 'testing'
+        password: 'testing',
       }
 
-      const signin = await request(app)
-        .post('/auth/signin')
-        .send(user)
-        .set('Content-Type', 'application/json')
+      const signin = await request(app).post('/auth/signin').send(user).set('Content-Type', 'application/json')
 
       const token = signin.body.token
-  
-      const response = await request(app)
-        .delete(`/api/blog/projects/${id}`)
-        .set('access-token', token)
+
+      const response = await request(app).delete(`/api/blog/projects/${id}`).set('access-token', token)
 
       expect(response.statusCode).toEqual(200)
       expect(response.body.length).toEqual(projects.length - 1)

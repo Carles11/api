@@ -34,6 +34,7 @@ export const create = async (req, res) => {
 }
 
 export const update = async (req, res) => {
+  console.log('API-UPDATEEE-UPDATEEE', req.body)
   try {
     const updateSchool = Object.assign(req.school, req.body)
     await updateSchool.save()
@@ -56,6 +57,7 @@ export const remove = async (req, res) => {
 }
 
 export const schoolById = async (req, res, next, id) => {
+  console.log('API-schoolById--schoolById', id, req.body)
   try {
     req.school = await School.findById(id)
     next()

@@ -19,7 +19,7 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
-  admin: { 
+  admin: {
     type: Boolean,
     default: false,
   },
