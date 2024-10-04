@@ -10,14 +10,14 @@
   ],
   "scripts": {
     "start": "yarn dev:start",
-    "dev:start": "nodemon --ignore lib --exec npx babel-node src",
-    "prod:build": "rimraf lib && babel src -d lib --ignore .test.js",
+    "dev:start": "nodemon --ignore lib --exec ./node_modules/.bin/babel-node src",
     "prod:start": "cross-env NODE_ENV=production pm2 start lib && pm2 logs",
     "prod:stop": "pm2 delete lib",
     "eslint": "eslint src && flow",
     "test": "jest --coverage"
   },
   "dependencies": {
+    "@babel/preset-react": "^7.25.7",
     "add": "^2.0.6",
     "babel-loader": "^8.2.5",
     "bcrypt": "^5.1.0",
@@ -46,7 +46,9 @@
   "devDependencies": {
     "@babel/cli": "^7.25.7",
     "@babel/core": "^7.21.0",
+    "@babel/node": "^7.25.7",
     "@babel/preset-env": "^7.21.0",
+    "@babel/preset-flow": "^7.25.7",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^29.0.0",
     "babel-preset-env": "^1.2.1",
