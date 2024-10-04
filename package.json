@@ -3,6 +3,9 @@
   "version": "1.0.8",
   "description": "API RESTFUL APP",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "author": "Xavi Vilà <txiverke@gmail.com>",
   "license": "MIT",
   "browserslist": [
