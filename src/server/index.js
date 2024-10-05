@@ -1,6 +1,7 @@
 // @flow
 
 import express from 'express'
+import cors from 'cors' // Import CORS
 import api from './api'
 import auth from './auth/routes'
 import mongoose from './config/mongoose'
@@ -11,9 +12,17 @@ const app = express()
 mongoose()
 middleware(app)
 
-// Middleware para controlar el caché
+// CORS Middleware
+app.use(
+  cors({
+    origin: 'https://www.leo-leo-hessen.com', // Replace with your actual frontend URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  }),
+)
+
+// Middleware for cache control
 app.use((req, res, next) => {
-  // Allow caching for up to 6 months
   const maxAgeSeconds = 15778463 // 6 months in seconds
   const maxAgeMilliseconds = maxAgeSeconds * 1000 // Convert to milliseconds
   const expiresDate = new Date(Date.now() + maxAgeMilliseconds).toUTCString()
