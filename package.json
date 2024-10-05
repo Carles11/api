@@ -14,7 +14,7 @@
   "scripts": {
     "start": "yarn dev:start",
     "dev:start": "nodemon --ignore lib --exec babel-node src",
-    "prod:build": "rimraf lib && babel src -d lib --ignore .test.js",
+    "prod:build": "yarn add @babel/preset-env && rimraf lib && babel src -d lib --ignore .test.js",
     "prod:start": "cross-env NODE_ENV=production pm2 start lib && pm2 logs",
     "prod:stop": "pm2 delete lib",
     "eslint": "eslint src && flow",
