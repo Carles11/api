@@ -5,8 +5,13 @@ import mongoose from 'mongoose'
 import config from './index'
 
 export default () => {
+  console.log('Config:', config)
+
   mongoose.Promise = global.Promise
-  mongoose.connect(config.db.url, { useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose.connect('REDACTED', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
 
   const db = mongoose.connection
 
