@@ -13,11 +13,21 @@ mongoose()
 middleware(app)
 
 // CORS Middleware
+const allowedOrigins =
+  process.env.NODE_ENV === 'development' ? ['http://localhost:3000'] : ['https://www.leo-leo-hessen.com']
+
 app.use(
   cors({
-    origin: 'https://www.leo-leo-hessen.com', // Replace with your actual frontend URL
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 )
 
