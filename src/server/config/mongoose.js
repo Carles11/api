@@ -5,10 +5,9 @@ import mongoose from 'mongoose'
 import config from './index'
 
 export default () => {
-  console.log('Config:', config.db.url)
-
+  // TEMP change process.env.MONGODB_URI by config.db.url, which is not working in DigitalOcean
   mongoose.Promise = global.Promise
-  mongoose.connect(config.db.url, { useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 
   const db = mongoose.connection
 
