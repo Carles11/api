@@ -33,19 +33,8 @@ app.use(
 
 // Middleware for cache control
 app.use((req, res, next) => {
-  const maxAgeSeconds = 3600 // Shortened to 1 hour or adjust as needed
-  res.setHeader('Cache-Control', `public, max-age=${maxAgeSeconds}`)
-  next()
-})
-
-// Disable cache for specific routes (like DELETE or GET on lists)
-app.use('/api/schools/:id', (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store')
-  next()
-})
-
-app.get('/api/schools', (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store')
+  // Clear cache for all requests
+  res.setHeader('Cache-Control', 'no-store') // Prevent caching
   next()
 })
 
