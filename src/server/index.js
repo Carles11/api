@@ -33,13 +33,19 @@ app.use(
 
 // Middleware for cache control
 app.use((req, res, next) => {
-  const maxAgeSeconds = 15778463 // 6 months in seconds
-  const maxAgeMilliseconds = maxAgeSeconds * 1000 // Convert to milliseconds
-  const expiresDate = new Date(Date.now() + maxAgeMilliseconds).toUTCString()
-
+  const maxAgeSeconds = 3600 // Shortened to 1 hour or adjust as needed
   res.setHeader('Cache-Control', `public, max-age=${maxAgeSeconds}`)
-  res.setHeader('Pragma', 'cache') // HTTP 1.0
-  res.setHeader('Expires', expiresDate) // Expires after 6 months
+  next()
+})
+
+// Disable cache for specific routes (like DELETE or GET on lists)
+app.use('/api/schools/:id', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store')
+  next()
+})
+
+app.get('/api/schools', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store')
   next()
 })
 
