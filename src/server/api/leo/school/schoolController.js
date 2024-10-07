@@ -34,7 +34,6 @@ export const create = async (req, res) => {
 }
 
 export const update = async (req, res) => {
-  console.log('API-UPDATEEE-UPDATEEE', req.body)
   try {
     const updateSchool = Object.assign(req.school, req.body)
     await updateSchool.save()
@@ -46,12 +45,16 @@ export const update = async (req, res) => {
 }
 
 export const remove = async (req, res) => {
+  console.log('API-remove-remove', req.body)
+
   try {
     const schoolToRemove = req.school
-    await schoolToRemove.remove()
+    console.log('schoolToRemove?', schoolToRemove)
+    await School.deleteOne({ _id: schoolToRemove._id })
     const schools = await School.find({})
     return res.status(200).json({ success: true, data: schools })
   } catch (err) {
+    console.log('errerrerrerr=`?', err)
     return res.status(500).json({ success: false, data: err })
   }
 }
