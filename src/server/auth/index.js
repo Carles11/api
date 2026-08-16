@@ -1,13 +1,13 @@
 // @flow
 
 import jwt from 'jsonwebtoken'
-import expressJwt from 'express-jwt'
+import { expressjwt } from 'express-jwt'
 import config from '../config'
 import User from '../api/blog/user/userModel'
 import leo_User from '../api/leo/user/userModel'
 import errorHandler from '../middleware/errorHandler'
 
-const checkToken = expressJwt({ secret: config.secrets.jwt })
+const checkToken = expressjwt({ secret: config.secrets.jwt, algorithms: ['HS256'] })
 
 const getModel = (type: string = '') => {
   switch (type) {
@@ -22,7 +22,6 @@ export const decodeToken = () => (req: Object, res: Object, next: Function) => {
   if (req.headers && req.headers['access-token']) {
     req.headers.authorization = `Bearer ${req.headers['access-token']}`
   }
-  console.log('DECODING-TOKEN', req.headers)
   checkToken(req, res, next)
 }
 
@@ -31,7 +30,7 @@ export const getFreshUser =
   (req: Object, res: Object, next: Function) => {
     const currentUser = getModel(type)
 
-    currentUser.findById(req.user._id).then(
+    currentUser.findById(req.auth._id).then(
       (user) => {
         if (!user) {
           return res.status(401).json({ success: false, data: 'Unauthorized User' })
