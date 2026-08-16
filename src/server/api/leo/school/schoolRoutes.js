@@ -5,7 +5,9 @@ import * as auth from '../../../auth'
 const checkUser = [auth.decodeToken(), auth.getFreshUser('leo')]
 const router = Router()
 
-router.route('/').get(ctrl.list).post(ctrl.create)
+router.route('/').get(ctrl.listPublic).post(ctrl.create)
+
+router.route('/all').get(checkUser, ctrl.list)
 
 router.route('/:schoolId').put(checkUser, ctrl.update).delete(checkUser, ctrl.remove)
 

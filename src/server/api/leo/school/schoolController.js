@@ -9,6 +9,15 @@ export const list = async (req, res) => {
   }
 }
 
+export const listPublic = async (req, res) => {
+  try {
+    const schools = await School.find({}).select('name address year')
+    return res.status(200).json({ success: true, data: schools })
+  } catch (err) {
+    return res.status(500).json({ success: false, data: err })
+  }
+}
+
 export const create = async (req, res) => {
   try {
     /**
@@ -25,7 +34,7 @@ export const create = async (req, res) => {
     // }
     const newSchool = await new School(req.body)
     await newSchool.save()
-    const schools = await School.find({})
+    const schools = await School.find({}).select('name address year')
     return res.status(201).json({ success: true, data: schools })
   } catch (err) {
     return res.status(500).json({ success: false, data: err })
