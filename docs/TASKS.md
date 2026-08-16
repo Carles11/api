@@ -9,16 +9,19 @@ Full context for A-0 … A-6 is in `docs/SECURITY.md` — read it before startin
 
 ## Phase 0 — Security · do first
 
-### A-0 · Revoke the leaked Google OAuth credentials 🔴 today, ~1 hour
-Google Cloud Console + the Google account's third-party access page. Then remove the hardcoded
-block from `src/server/api/leo/school/schoolController.js`.
+### A-0 · Remove the dead Google credentials from source 🟢 ~30 min
+**The credentials are confirmed dead** — `invalid_grant`, verified 16 Aug 2026. Nothing to revoke.
+See `docs/SECURITY.md` A-0.
 
-Decide with the client: wire `setMail()` up properly (it is **never called** today, so nobody gets
-registration emails) or delete it. If wiring it up, use a transactional provider with an API key in
-an env var — not Gmail OAuth.
+Delete the `setMail` function and its now-unused `nodemailer` import from
+`src/server/api/leo/school/schoolController.js`. Confirm first with `grep -rn "setMail" src/` that it
+is genuinely never called.
 
-**Done when:** the credentials are revoked, no secret literal remains in `src/`, and you have told
-the client whether registration emails are now sent or still not sent.
+Then ask the client whether registration confirmation emails are wanted at all — they have never
+been sent and nobody appears to have noticed.
+
+**Done when:** no credential literal remains in `src/`, the build passes, and school registration
+still returns 201.
 
 ---
 

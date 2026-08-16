@@ -6,35 +6,41 @@ Found in a read-only audit, August 2026. Ordered by urgency. Each maps to a task
 
 ---
 
-## 🔴 A-0 · Leaked Google OAuth credentials — do this today
+## 🟢 A-0 · Leaked Google OAuth credentials — RESOLVED, code cleanup only
 
-`src/server/api/leo/school/schoolController.js`, in `setMail()`:
+**Status (16 Aug 2026): confirmed dead.** A `refresh_token` grant against
+`oauth2.googleapis.com/token` returned `invalid_grant`. The credential does not work and there is
+nothing to revoke.
 
-```js
-clientId:     '1067546246706-…apps.googleusercontent.com',
-clientSecret: '3Stb9mRd1vtrI0CcVarPAfGq',
-refreshToken: '1/cI5CXoe7cReWK3yUoZDbCX7otnqy2rPRPhkIB4rF1Po',
-accessToken:  'ya29.Glsd…',
-```
+`src/server/api/leo/school/schoolController.js`, in `setMail()`, hardcodes a Google OAuth
+`clientId`, `clientSecret`, `refreshToken` and `accessToken` for `leoleoconcurso@gmail.com`. They
+are committed and still present in HEAD — an earlier "removed sensitive data" commit did not
+remove these.
 
-For `leoleoconcurso@gmail.com`. These are **committed to git and present in HEAD** — a later
-"removed sensitive data" commit did not remove these. If this repo is public (the sibling frontend
-repo is), assume they are compromised.
+**Why they are inert:**
 
-**Do, in this order:**
+- The `accessToken` carries `expires: 1484314697598` — **January 2017**. Access tokens last one hour.
+- `setMail()` is **never called from anywhere** (`grep -rn "setMail" src/`), so the refresh token has
+  gone unused for years, and Google auto-revokes refresh tokens after six months of non-use.
+- Verified empirically against the token endpoint: `invalid_grant`.
 
-1. **Revoke** the OAuth client in Google Cloud Console, and revoke the refresh token from the
-   Google account's *Third-party access* page. Do this before anything else — it is the only step
-   that actually stops the bleeding.
-2. Move any remaining mail config to env vars (`USER_MAIL` / `PASS_MAIL` already exist in `.env`).
-3. Decide about history: `git filter-repo` can scrub it, but it rewrites every commit hash and the
-   credentials may already be in forks, caches and clones. **Revoking is what matters**; scrubbing
-   is cosmetic. Usually the pragmatic call is revoke, replace, move on.
+They also never belonged to the `c-delriofrances-org` Cloud organisation — they were created under
+the contest's own Gmail account (or the original author's), which is why they are not visible in
+this project's Google Cloud console.
 
-**Also note:** `setMail()` is **never called from anywhere.** Confirmed with
-`grep -rn "setMail" src/`. So schools registering today receive **no confirmation email** and the
-organisers get **no notification** — a silent product bug, not just a security one. Decide with the
-client whether to wire it up properly (Resend / Postmark / SES) or delete the function.
+**What still needs doing:** delete the credential literals from source (task A-0c). Not because they
+work, but because this is a public repository — secret scanners and credential-harvesting bots will
+keep flagging them, and dead secrets in source normalise the wrong habit.
+
+**Separately, a real product bug:** because `setMail()` is never called, schools registering today
+receive **no confirmation email** and the organisers get **no notification**. Decide with the client
+whether to wire this up properly (Resend / Postmark / SES, API key in an env var — not Gmail OAuth)
+or delete the function. That is a feature decision, not a security one.
+
+> Historical note: this was first logged as 🔴 "revoke today". That was an overreaction to the
+> pattern — an OAuth secret in a public repo — without reading the 2017 expiry timestamp sitting
+> beside it. Worth keeping the lesson: establish whether a leaked credential is actually live before
+> reordering a week's work around it.
 
 ---
 
