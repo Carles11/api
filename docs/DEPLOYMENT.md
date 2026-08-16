@@ -8,10 +8,10 @@
 
 | | |
 |---|---|
-| Host | **DigitalOcean** — **`VERIFY`**: App Platform or a Droplet? The `pm2` scripts suggest a Droplet |
+| Host | **DigitalOcean** — **`VERIFY`**: Droplet (inferred from PM2 usage; App Platform would typically not use PM2) |
 | Process manager | PM2, started from the compiled `lib/` directory |
 | Deploys from | **`VERIFY`** — which branch, and is it automatic or a manual pull + build? |
-| Node version | package.json declares `>=18` |
+| Node version | package.json declares `>=18`; local is v22 |
 | Public URL | **`VERIFY`** — the value of `REACT_APP_API_URL` in the frontend's Render config |
 
 Build and start, per `package.json`:
@@ -22,8 +22,14 @@ yarn prod:start    # cross-env NODE_ENV=production pm2 start lib && pm2 logs
 yarn prod:stop     # pm2 delete lib
 ```
 
-Note `prod:build` begins with `yarn add @babel/preset-env`, which mutates `package.json` on every
-build. That is a workaround someone added under pressure; clean it up in the off-season.
+> **Why are `@babel/core`, `@babel/preset-env`, and `@babel/preset-flow` in `dependencies`
+> instead of `devDependencies`?** Because the deploy target's install step may run with
+> `--production`, which strips devDependencies — leaving the Babel toolchain absent at build
+> time. Previously the build script papered over this with an unpinned `yarn add @babel/preset-env`,
+> which broke when Babel 8 shipped (commit `222fff3`, task A-17). Moving these three packages into
+> `dependencies` is the insurance: the build survives regardless of install mode. If the deploy
+> config is ever verified to run a full install, they can be moved back — but the asymmetry (20 MB
+> cost vs. total deploy breakage) favours keeping them here.
 
 ## Environment variables
 
@@ -58,9 +64,12 @@ real, so it must first be extended to cover every origin actually in use (apex d
 ## Release procedure
 
 1. Work on `development`.
-2. `yarn eslint && yarn prod:build` locally.
+2. `yarn lint && yarn prod:build` locally.
 3. PR → review → merge.
-4. Deploy: **`VERIFY`** the exact steps — pull + `yarn prod:build` + `pm2 reload`?
+4. Deploy: **`VERIFY`** the exact steps — currently inferred as: `git pull` → `yarn install`
+   (or `yarn install --production` — see note above about Babel in deps) → `yarn prod:build` →
+   `pm2 reload`. The Babel packages in `dependencies` ensure the build succeeds even under
+   `--production`.
 5. Check `pm2 logs` for the `[ DB connected. ]` line.
 6. Smoke test against the live frontend:
    - `curl <api>/api/leo/documents` returns the current edition **with its `year` field**
