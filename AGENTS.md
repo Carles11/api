@@ -103,6 +103,54 @@ Auth middleware is the pair `[auth.decodeToken(), auth.getFreshUser('leo')]`, al
    This works only because Mongoose strict mode applies to writes, not reads. Do not "clean up"
    the schemas without confirming the frontend still receives those fields.
 
+## Working with coding agents
+
+Learned the hard way, 16 Aug 2026. These are not optional.
+
+1. **Never run `yarn install`, `yarn add`, or any package install command.** OpenCode runs in
+   Linux; this repo is developed on Windows. A Linux install rewrites `node_modules/.bin` with
+   POSIX symlinks (no `.cmd` shims) and installs Linux binaries for native modules like `bcrypt`,
+   which then fail with *"is not a valid Win32 application"*. If a dependency must change, edit
+   `package.json` only and say so — the human runs the install on Windows.
+
+2. **Commit your work.** Create the branch, make the edits, `git add`, `git commit`. Reporting a
+   task as done while leaving changes uncommitted in the working tree has caused three separate
+   tangles. A task is not finished until `git status --short` is empty and `git log -1` shows
+   your commit.
+
+3. **Apply the change — do not stop at a plan** unless explicitly asked to plan. If asked to plan
+   first, say so clearly and wait.
+
+4. **Report the branch name you are actually on**, verified with `git branch --show-current`, not
+   the one you intended to create.
+
+### For the human, before switching branches
+
+Run `git status --short`. Empty means safe to check out. Anything listed means the agent left work
+uncommitted — commit it on the current branch first.
+
+### ⚠️ Local development connects to the PRODUCTION database
+
+`src/server/config/mongoose.js` reads `process.env.MONGODB_URI` unconditionally, ignoring
+`NODE_ENV`. The `.env` file also defines `MONGODB_DEV`, but **no code reads it**, and both hold the
+same production connection string.
+
+So `yarn dev:start` on a laptop is talking to live data.
+
+**Consequences — treat as rules:**
+
+- Read-only tests (sign-in, `GET` endpoints) are safe.
+- **Never run a write test (`POST`, `PUT`, `DELETE`) against a local server** unless the code that
+  blocks that write is confirmed applied. On 16 Aug 2026 a `POST /api/leo/images` test ran before
+  the auth fix was applied and wrote a junk record into the live `leo_images` collection.
+- **Verify the diff first, run the write test second.** Confirm `git status --short` is empty and
+  `git log -1` shows the expected commit before testing anything that writes.
+- Use a distinctive value (e.g. `src: "DELETE-ME-TEST"`) in any test payload so it can be found and
+  removed if it does land.
+
+Fixing this properly is task A-9 (staging). An unused `api_development` project already exists in
+Atlas and is the obvious starting point.
+
 ## Definition of done
 
 - [ ] `yarn eslint` passes
