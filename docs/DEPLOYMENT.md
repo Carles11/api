@@ -51,16 +51,18 @@ It works, and it is not being changed during the current season — but two thin
 
 1. `nodemon` and `@babel/node` are in `devDependencies`, so the runtime image **must** include dev
    dependencies. Do not add `--production` to the install step.
-2. **OPEN — verify before task A-4.** `src/server/config/index.js` does
-   `process.env.NODE_ENV = process.env.NODE_ENV || 'development'`, and `NODE_ENV` is **not** set in
-   the dashboard env vars. If production is running as `development`, then `server/index.js` picks
-   the CORS allowlist `['http://localhost:3000']`. That is inert today because a permissive
-   `cors()` shadows it — **but A-4 removes that shadow, which would take the live site down.**
+2. ✅ **RESOLVED 16 Aug 2026 — `NODE_ENV` IS `production`.** Verified in Runtime Logs:
+   `[  PORT  ]: 8080 in (production)`. App Platform sets it even though it is absent from the
+   dashboard env vars. So `server/index.js` resolves the CORS allowlist to
+   `https://www.leo-leo-hessen.com`, not localhost. **A-4 is safe from this particular landmine** —
+   but still extend the allowlist to cover the apex domain and any staging origin before merging it.
 
-   Cheap check: open **Runtime Logs**. `middleware/index.js` uses `morgan('dev')` when
-   `NODE_ENV === 'development'` and `compression()` otherwise. If you see coloured per-request log
-   lines (`GET /api/leo/schools 200 5.123 ms`), NODE_ENV is `development`. If the logs are quiet,
-   it is `production`.
+3. ⚠️ **However — `config/production.js` never actually loads.** See task A-19. It begins with
+   `require('babel-core/register')` and `require('babel-polyfill')`, neither of which is declared in
+   `package.json` (Babel 6 leftovers). The require throws, `config/index.js` swallows it in a
+   `catch`, and `envConfig` falls back to `{}`. So `config.db`, `config.mail` and `config.logging`
+   are `undefined` in production. **This — not DigitalOcean — is why `mongoose.js` had to read
+   `process.env.MONGODB_URI` directly.**
 
 > **Why are `@babel/core`, `@babel/preset-env` and `@babel/preset-flow` in `dependencies` rather
 > than `devDependencies`?** Deliberate, task A-17. The build script previously papered over a

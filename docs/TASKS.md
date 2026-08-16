@@ -142,6 +142,48 @@ like a lint failure. Use `"lint": "eslint src"` and keep `flow` separate.
 
 ---
 
+### A-19 · `config/production.js` silently fails to load 🟠 ~1 hour
+
+`src/server/config/production.js` opens with:
+
+```js
+require('babel-core/register')
+require('babel-polyfill')
+```
+
+Neither package is in `package.json` — they are Babel 6 leftovers from before the `@babel/*` v7
+migration. The require throws, and `src/server/config/index.js` catches it:
+
+```js
+} catch (e) {
+  envConfig = {}   // silently swallows the real error
+}
+```
+
+So the production config object has **never** been applied. `config.db`, `config.mail` and
+`config.logging` are `undefined` in production.
+
+This is the actual reason `config/mongoose.js` reads `process.env.MONGODB_URI` directly, with the
+comment blaming DigitalOcean. The blame was misplaced.
+
+**No current live impact** — mongoose was worked around and `setMail` was deleted in A-0c. The risk
+is future: any code reading `config.db.url` or `config.mail` gets `undefined` in production and
+fails silently.
+
+**Fix:**
+- Delete both `require` lines from `config/production.js`. Babel 7 handles this via `.babelrc`;
+  nothing needs a runtime register hook.
+- Make the `catch` in `config/index.js` log the error instead of swallowing it — a config file that
+  fails to load should be loud. Keep the `{}` fallback so behaviour does not change.
+- Verify the `testing.js` and `development.js` paths still work.
+
+**Done when:** `config.db.url` is defined in production, and a deliberately broken config file
+produces a visible error rather than silence.
+
+**Verify after deploy:** Runtime Logs still show `[  DB connected.  ]`. That line is the canary.
+
+---
+
 ## Phase 1 — Safety net
 
 ### A-9 · Staging environment 🔵 half a day
