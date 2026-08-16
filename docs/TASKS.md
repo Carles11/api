@@ -93,6 +93,55 @@ share one IP and the limiter will lock everyone out at once. Verify before deplo
 
 ---
 
+### A-17 · Fix the production build script 🔴 BLOCKS ALL API DEPLOYS
+
+```json
+"prod:build": "yarn add @babel/preset-env && rimraf lib && babel src -d lib --ignore .test.js"
+```
+
+`yarn add @babel/preset-env` carries **no version specifier**, so every production build installs
+the newest major. `@babel/preset-env` is already declared `^7.25.7` in devDependencies and installed
+at 7.25.7 — the line is redundant, and now actively harmful: it pulls Babel 8, whose `compat-data`
+requires Node ≥ 22.18, and rewrites `package.json` in the process.
+
+Observed 16 Aug 2026: the build fails on Node 20.19.4. Running the real steps
+(`rimraf lib && babel src -d lib`) succeeds — only the bootstrap is broken.
+
+**This means the API cannot be reliably deployed right now**, including the security fixes.
+
+Do not simply delete the line without understanding why it exists. It was almost certainly added
+because the deploy runs `yarn install --production`, which skips devDependencies, leaving the Babel
+toolchain absent at build time (commits `1207300`, `f947070`). Establish how DigitalOcean actually
+installs before choosing between:
+
+- moving `@babel/cli`, `@babel/core` and the presets into `dependencies`, or
+- running a full `yarn install` on the server, building, then pruning.
+
+Either way, **pin the version** — never `yarn add` an unpinned package inside a build script.
+
+**Done when:** `yarn prod:build` succeeds end to end on the deploy target's Node version, without
+modifying `package.json` as a side effect, and `lib/` contains all 62 compiled files.
+
+---
+
+### A-18 · Unbreak eslint 🟠 blocks CI (A-10)
+
+`yarn eslint` fails on untouched code. `eslint-plugin-flowtype@5.10.0` does
+`require('eslint/lib/rules/no-unused-expressions')`, and eslint 8.57.1's `exports` map only exposes
+`.`, `./package.json` and `./use-at-your-own-risk` — so Node refuses the subpath.
+
+Verified in `node_modules/eslint-plugin-flowtype/dist/rules/noUnusedExpressions.js:8`.
+
+Remove `eslint-plugin-flowtype` from `.eslintrc.json` (plugins + any `flowtype/*` rules) and from
+`devDependencies`. It only lints Flow syntax, and A-15 retires Flow anyway.
+
+Also split the script — `"eslint": "eslint src && flow"` couples two tools, so a flow failure looks
+like a lint failure. Use `"lint": "eslint src"` and keep `flow` separate.
+
+**Done when:** `yarn lint` runs to completion and reports real lint findings rather than a crash.
+
+---
+
 ## Phase 1 — Safety net
 
 ### A-9 · Staging environment 🔵 half a day

@@ -65,6 +65,34 @@ Run `yarn eslint` and `yarn prod:build` before reporting.
 
 ---
 
+## 🔵 A-17 + A-18 · Unbreak the build and lint toolchain
+**Repo:** `api` · **Agent:** Claude · **Mode:** Plan first · **Do before deploying anything**
+
+Discovered during A-0c: `yarn prod:build` and `yarn eslint` both fail on untouched code. Until A-17
+is fixed the API cannot be reliably deployed — which blocks shipping A-2 and A-1.
+
+```
+Read AGENTS.md, then docs/TASKS.md tasks A-17 and A-18.
+
+Both are toolchain breaks, not code defects. A-17 blocks all deploys, so do it first.
+
+For A-17 I need you to work out WHY `yarn add @babel/preset-env` is in the build script before
+removing it — my working theory is that the DigitalOcean deploy runs `yarn install --production`,
+which strips the Babel toolchain out of devDependencies. If that is right, deleting the line
+breaks the deploy in a different way. Tell me what you need to know about the deploy setup, and
+give me the options with trade-offs before editing anything.
+
+For A-18, removing eslint-plugin-flowtype is straightforward — but check first whether
+.eslintrc.json references any flowtype/* rules that would then be unknown-rule errors.
+
+Branch: chore/A-17-A-18-toolchain
+```
+
+**Works if:** `yarn prod:build` completes without mutating `package.json`, and `yarn lint` reports
+findings instead of crashing.
+
+---
+
 ## 🔵 A-2 · Fix the auth bypass
 **Repo:** `api` · **Agent:** Claude · **Mode:** Plan first, then Edit
 
