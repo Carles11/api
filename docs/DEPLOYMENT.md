@@ -1,92 +1,145 @@
 # Deployment — api
 
-> ⚠️ Parts of this are **unverified** — reconstructed from code and package scripts, not from the
-> DigitalOcean dashboard. Fields marked **`VERIFY`** need one pass by a human with access.
-> Correct them and delete the marker.
+Verified against the DigitalOcean dashboard, 16 Aug 2026. No inferred fields remain except the two
+marked **OPEN**.
 
 ## Where it runs
 
 | | |
 |---|---|
-| Host | **DigitalOcean** — **`VERIFY`**: Droplet (inferred from PM2 usage; App Platform would typically not use PM2) |
-| Process manager | PM2, started from the compiled `lib/` directory |
-| Deploys from | **`VERIFY`** — which branch, and is it automatic or a manual pull + build? |
-| Node version | package.json declares `>=18`; local is v22 |
-| Public URL | **`VERIFY`** — the value of `REACT_APP_API_URL` in the frontend's Render config |
+| Host | **DigitalOcean App Platform** — *not* a Droplet |
+| App | `api-crix` · project `carles` · region **FRA1** · https://www.api-crix.com |
+| Component | `api` — Web Service, 1 instance, $5/mo (512 MB RAM, 1 shared vCPU) |
+| Repo | `github.com/Carles11/api`, source directory `/` |
+| **Deploys from** | **`master`** |
+| **Autodeploy** | **On** — every push to `master` deploys immediately. There is no separate deploy step. |
+| Buildpack stack | Ubuntu 22.04 · Custom Build Command · Procfile · Node.js |
+| Public HTTP port | 8080 (App Platform injects `PORT`) |
+| Node version | Buildpack default is **22.x**; controlled by `engines` in `package.json` |
 
-Build and start, per `package.json`:
+### ⚠️ App Platform redeploys on its own
 
-```bash
-yarn prod:build    # rimraf lib && babel src -d lib --ignore .test.js
-yarn prod:start    # cross-env NODE_ENV=production pm2 start lib && pm2 logs
-yarn prod:stop     # pm2 delete lib
+The activity log shows entries reading *"Performed routine maintenance and redeployed app"* with
+the actor logged as **App Platform**, not a user (18 Mar 2026, 7 Jan 2026). DigitalOcean rebuilds
+this app on its own schedule.
+
+**Consequence:** a broken build is not a risk you control by not deploying. It fires whenever DO
+does maintenance — including mid-registration-season. This is why task A-17 (the unpinned
+`yarn add` in the build script) was urgent rather than merely blocking.
+
+A failed deployment does **not** take the site down: App Platform keeps the last good deployment
+serving traffic. The "Failed Deployment" email alert is the signal that this has happened.
+
+## Commands (set in the dashboard, not in the repo)
+
+Settings → Components → `api` → Commands:
+
+```
+Build Command:  yarn prod:build
+Run Command:    yarn start
 ```
 
-> **Why are `@babel/core`, `@babel/preset-env`, and `@babel/preset-flow` in `dependencies`
-> instead of `devDependencies`?** Because the deploy target's install step may run with
-> `--production`, which strips devDependencies — leaving the Babel toolchain absent at build
-> time. Previously the build script papered over this with an unpinned `yarn add @babel/preset-env`,
-> which broke when Babel 8 shipped (commit `222fff3`, task A-17). Moving these three packages into
-> `dependencies` is the insurance: the build survives regardless of install mode. If the deploy
-> config is ever verified to run a full install, they can be moved back — but the asymmetry (20 MB
-> cost vs. total deploy breakage) favours keeping them here.
+### ⚠️ Production runs in development mode
+
+`yarn start` → `yarn dev:start` → `nodemon --ignore lib --exec babel-node src`
+
+So production **transpiles on the fly with `babel-node` under `nodemon`**, and the `lib/` output
+that `prod:build` produces is built and then never used. This also explains ~58% RAM at idle on a
+512 MB instance.
+
+It works, and it is not being changed during the current season — but two things follow:
+
+1. `nodemon` and `@babel/node` are in `devDependencies`, so the runtime image **must** include dev
+   dependencies. Do not add `--production` to the install step.
+2. **OPEN — verify before task A-4.** `src/server/config/index.js` does
+   `process.env.NODE_ENV = process.env.NODE_ENV || 'development'`, and `NODE_ENV` is **not** set in
+   the dashboard env vars. If production is running as `development`, then `server/index.js` picks
+   the CORS allowlist `['http://localhost:3000']`. That is inert today because a permissive
+   `cors()` shadows it — **but A-4 removes that shadow, which would take the live site down.**
+
+   Cheap check: open **Runtime Logs**. `middleware/index.js` uses `morgan('dev')` when
+   `NODE_ENV === 'development'` and `compression()` otherwise. If you see coloured per-request log
+   lines (`GET /api/leo/schools 200 5.123 ms`), NODE_ENV is `development`. If the logs are quiet,
+   it is `production`.
+
+> **Why are `@babel/core`, `@babel/preset-env` and `@babel/preset-flow` in `dependencies` rather
+> than `devDependencies`?** Deliberate, task A-17. The build script previously papered over a
+> missing toolchain with an unpinned `yarn add @babel/preset-env`, which installs the newest major
+> — and broke when Babel 8 shipped (Babel 8's `compat-data` requires Node ≥ 22.18). Keeping these
+> three in `dependencies` means the build works regardless of install mode. Do not "tidy" them back.
 
 ## Environment variables
 
-Loaded by `dotenv` from `.env` on the server (gitignored — verified). Referenced in
-`src/server/config/`:
+Set in the App Platform dashboard (Settings → Components → `api` → Environment Variables).
+Only two are configured:
 
-| Variable | Purpose |
-|---|---|
-| `MONGODB_URI` | Atlas connection string — **production** |
-| `MONGODB_DEV` | Atlas/local connection string for development |
-| `JWT` | Secret for signing and verifying tokens |
-| `PORT` | Listen port |
-| `USER_MAIL` / `PASS_MAIL` | Mail credentials (referenced in `config/production.js`, currently unused — `setMail()` is never called) |
-| `NODE_ENV` | Selects `config/{development,production,testing}.js` |
+| Variable | Set in DO? | Purpose |
+|---|---|---|
+| `MONGODB_URI` | ✅ | Atlas connection string — production |
+| `JWT` | ✅ | Secret for signing and verifying tokens |
+| `PORT` | ❌ | Injected by App Platform (8080) |
+| `NODE_ENV` | ❌ | **See the OPEN item above** — defaults to `development` in code |
+| `MONGODB_DEV` | ❌ | Local development only |
+| `USER_MAIL` / `PASS_MAIL` | ❌ | Referenced in `config/production.js`; unused since `setMail()` was removed (A-0c) |
 
 ⚠️ `config/mongoose.js` reads `process.env.MONGODB_URI` **directly**, bypassing the config object,
-with a comment explaining that `config.db.url` "is not working in DigitalOcean". So `MONGODB_URI`
-must be set in the actual process environment, not only in a config file. Worth revisiting once
-there is a staging environment to test against.
+with a comment noting that `config.db.url` "is not working in DigitalOcean". Now explained: with
+`NODE_ENV` unset, `config/production.js` never loads, so `config.db.url` is undefined. The direct
+read is a workaround for the same root cause as the OPEN item above.
+
+## Alerts
+
+Configured 16 Aug 2026 (App-level → Alert Policies):
+
+| Policy | Delivery | Enabled |
+|---|---|---|
+| Failed Deployment | Email | ✅ |
+| Failed Domain Configuration | Email | ✅ |
+| CPU above 80% for 5 min | Email | ✅ |
+| RAM above 85% for 5 min | Email | ✅ |
+
+RAM is the one that matters — `babel-node` sits around 58% at idle, so headroom is limited.
 
 ## CORS
 
-The allowlist in `src/server/index.js` currently permits:
+The allowlist in `src/server/index.js` permits:
 
 - `http://localhost:3000` when `NODE_ENV === 'development'`
 - `https://www.leo-leo-hessen.com` otherwise
 
-**It is currently inert** — see `docs/SECURITY.md` A-4. Once A-4 is fixed the allowlist becomes
-real, so it must first be extended to cover every origin actually in use (apex domain without
-`www`, Render preview URLs, the staging frontend). Getting this wrong takes the live site down.
+**Currently inert** — see `docs/SECURITY.md` A-4. Before fixing A-4, resolve the NODE_ENV OPEN item
+above and extend the list to cover every origin actually in use (apex domain without `www`, Render
+preview URLs, the staging frontend). Getting this wrong takes the live site down.
 
 ## Release procedure
 
 1. Work on `development`.
-2. `yarn lint && yarn prod:build` locally.
-3. PR → review → merge.
-4. Deploy: **`VERIFY`** the exact steps — currently inferred as: `git pull` → `yarn install`
-   (or `yarn install --production` — see note above about Babel in deps) → `yarn prod:build` →
-   `pm2 reload`. The Babel packages in `dependencies` ensure the build succeeds even under
-   `--production`.
-5. Check `pm2 logs` for the `[ DB connected. ]` line.
-6. Smoke test against the live frontend:
-   - `curl <api>/api/leo/documents` returns the current edition **with its `year` field**
-   - `curl <api>/api/leo/schools` returns the school list
-   - Sign in at `/admin` on the live site
-   - Register a test school, confirm it appears, then delete it from Atlas
+2. `yarn lint && yarn prod:build` locally. Confirm `git status` shows `package.json` **unmodified**
+   afterwards — if the build mutated it, A-17 has regressed.
+3. Push `development`. Nothing deploys.
+4. **Merge `development` → `master` and push. This is the deploy** — autodeploy fires immediately.
+5. Watch the build in the DO dashboard (Activity tab). A failure leaves the previous version live
+   and emails you.
+6. Smoke test:
+   - `curl https://www.api-crix.com/api/leo/documents` — returns the current edition **with its
+     `year` field**
+   - `curl https://www.api-crix.com/api/leo/schools` — returns the school list
+   - Sign in at `/admin` on https://www.leo-leo-hessen.com
+   - Register a test school, confirm it appears on `/colegios-inscritos`, then delete it in Atlas
 
 **Do not deploy on a Friday, and not during October–April/May** unless it is a security fix. That
-window is the registration season and there is no margin.
+window is registration season and there is no margin.
 
 ## Rollback
 
-**`VERIFY` and write this down.** With PM2 the usual path is checking out the previous commit,
-rebuilding, and `pm2 reload`. Nobody should be figuring this out during an outage.
+App Platform keeps previous deployments. Dashboard → app → **Activity**, find the last good
+deployment, and use its **Rollback / Redeploy** action. No git operation required.
+
+**OPEN:** do a dry run of this once, outside season, and note the exact click path here. Nobody
+should be discovering it during an outage.
 
 ## Related
 
 - Frontend deployment: `leo-react` repo, `docs/DEPLOYMENT.md` (Render.com)
 - Database: MongoDB Atlas, org `CriX`, project `api_production`, cluster `api`, db `api`.
-  Backups: **`VERIFY`** they are enabled, and test a restore — task A-12.
+  Backups: **OPEN** — confirm enabled and test a restore (task A-12).
