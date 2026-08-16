@@ -11,3 +11,10 @@ DOCs/
 /coverage/
 /lib/
 .env
+# The /DOCs rule above also matches ./docs on case-insensitive filesystems (Windows/macOS).
+# Agent + project documentation must stay tracked.
+!docs/
+!docs/**
+
+# Claude Code / agent tooling: share commands, keep local overrides out.
+.claude/settings.local.json
