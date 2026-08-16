@@ -44,22 +44,18 @@ export const update = async (req, res) => {
 }
 
 export const remove = async (req, res) => {
-  console.log('API-remove-remove', req.body)
-
   try {
     const schoolToRemove = req.school
-    console.log('schoolToRemove?', schoolToRemove)
     await School.deleteOne({ _id: schoolToRemove._id })
     const schools = await School.find({})
     return res.status(200).json({ success: true, data: schools })
   } catch (err) {
-    console.log('errerrerrerr=`?', err)
+    console.error('Error removing school:', err.message)
     return res.status(500).json({ success: false, data: err })
   }
 }
 
 export const schoolById = async (req, res, next, id) => {
-  console.log('API-schoolById--schoolById', id, req.body)
   try {
     req.school = await School.findById(id)
     next()
