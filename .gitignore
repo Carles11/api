@@ -16,5 +16,8 @@ DOCs/
 !docs/
 !docs/**
 
+# Backup files contain German teachers' PII (names, emails, phone numbers)
+/backups/
+
 # Claude Code / agent tooling: share commands, keep local overrides out.
 .claude/settings.local.json

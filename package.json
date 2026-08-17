@@ -18,7 +18,8 @@
     "prod:start": "cross-env NODE_ENV=production pm2 start lib && pm2 logs",
     "prod:stop": "pm2 delete lib",
     "lint": "eslint src",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "backup": "babel-node scripts/backup.js"
   },
   "dependencies": {
     "@babel/cli": "^7.25.7",
