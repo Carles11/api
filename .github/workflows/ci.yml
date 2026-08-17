@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [development, master]
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn prod:build
+      # Tests are intentionally excluded until the Jest suite is rewritten.
+      # The existing tests cover only the dormant blog product and may not pass.
