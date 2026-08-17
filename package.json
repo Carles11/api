@@ -19,7 +19,8 @@
     "prod:stop": "pm2 delete lib",
     "lint": "eslint src",
     "test": "jest --coverage",
-    "backup": "babel-node scripts/backup.js"
+    "backup": "babel-node scripts/backup.js",
+    "restore": "babel-node scripts/restore.js"
   },
   "dependencies": {
     "@babel/cli": "^7.25.7",
