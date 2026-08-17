@@ -9,6 +9,7 @@ import middleware from './middleware'
 import root from './root'
 
 const app = express()
+app.set('trust proxy', 1)
 mongoose()
 middleware(app)
 

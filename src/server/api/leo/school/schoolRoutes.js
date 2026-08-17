@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import * as ctrl from './schoolController'
 import * as auth from '../../../auth'
+import { registerLimiter } from '../../../middleware/rateLimit'
 
 const checkUser = [auth.decodeToken(), auth.getFreshUser('leo')]
 const router = Router()
 
-router.route('/').get(ctrl.listPublic).post(ctrl.create)
+router.route('/').get(ctrl.listPublic).post(registerLimiter, ctrl.create)
 
 router.route('/all').get(checkUser, ctrl.list)
 

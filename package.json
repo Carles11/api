@@ -37,6 +37,7 @@
     "dotenv": "^16.0.0",
     "express": "^4.18.2",
     "express-jwt": "^8.0.0",
+    "express-rate-limit": "^7.4.0",
     "express-session": "^1.17.2",
     "fs": "^0.0.1-security",
     "googleapis": "^105.0.0",
