@@ -14,7 +14,13 @@ middleware(app)
 
 // CORS Middleware
 const allowedOrigins =
-  process.env.NODE_ENV === 'development' ? ['http://localhost:3000'] : ['https://www.leo-leo-hessen.com']
+  process.env.NODE_ENV === 'development'
+    ? ['http://localhost:3000']
+    : [
+        'https://www.leo-leo-hessen.com',
+        'https://leo-leo-hessen.com',
+        'https://leo-react.onrender.com',
+      ]
 
 app.use(
   cors({
@@ -27,7 +33,7 @@ app.use(
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'access-token'],
   }),
 )
 

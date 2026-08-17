@@ -4,7 +4,7 @@ import express from 'express'
 import favicon from 'serve-favicon'
 import morgan from 'morgan'
 import compression from 'compression'
-import cors from 'cors'
+
 import path from 'path'
 import override from 'method-override'
 import bodyParser from 'body-parser'
@@ -18,7 +18,6 @@ export default (app: Object) => {
     app.use(compression())
   }
 
-  app.use(cors())
   app.use(override())
 
   app.use(bodyParser.json({ limit: '10mb' }))
