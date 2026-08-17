@@ -1,5 +1,9 @@
 # api — agent guide
 
+
+> 📍 **Starting a session? Read `docs/STATUS.md` first.** It records what is deployed, what is
+> next, which agent to use for each task, and the traps discovered along the way.
+
 Read this before touching anything. Then read `docs/` for the task at hand.
 
 ## What this is
