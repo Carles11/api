@@ -133,27 +133,46 @@ Learned the hard way, 16 Aug 2026. These are not optional.
 Run `git status --short`. Empty means safe to check out. Anything listed means the agent left work
 uncommitted — commit it on the current branch first.
 
-### ⚠️ Local development connects to the PRODUCTION database
+### ✅ Local development now uses STAGING, not production
 
-`src/server/config/mongoose.js` reads `process.env.MONGODB_URI` unconditionally, ignoring
-`NODE_ENV`. The `.env` file also defines `MONGODB_DEV`, but **no code reads it**, and both hold the
-same production connection string.
+Fixed 17 Aug 2026 (task A-20). `src/server/config/mongoose.js` is now environment-aware:
 
-So `yarn dev:start` on a laptop is talking to live data.
+- `NODE_ENV === 'production'` → `MONGODB_URI` (DigitalOcean)
+- otherwise → `MONGODB_DEV`, falling back to `MONGODB_URI`
 
-**Consequences — treat as rules:**
+On startup it logs which variable it used, e.g. `[  DB  ]: connected via MONGODB_DEV`. **Check that
+line before running anything that writes.**
 
-- Read-only tests (sign-in, `GET` endpoints) are safe.
-- **Never run a write test (`POST`, `PUT`, `DELETE`) against a local server** unless the code that
-  blocks that write is confirmed applied. On 16 Aug 2026 a `POST /api/leo/images` test ran before
-  the auth fix was applied and wrote a junk record into the live `leo_images` collection.
-- **Verify the diff first, run the write test second.** Confirm `git status --short` is empty and
-  `git log -1` shows the expected commit before testing anything that writes.
-- Use a distinctive value (e.g. `src: "DELETE-ME-TEST"`) in any test payload so it can be found and
-  removed if it does land.
+`MONGODB_DEV` points at the `api-staging` cluster (Atlas project `api_development`), populated from
+a real backup — 337 schools, 7 documents, 169 images, 3 users.
 
-Fixing this properly is task A-9 (staging). An unused `api_development` project already exists in
-Atlas and is the obvious starting point.
+Before this fix, local dev talked to the live database, and on 16 Aug a `POST /images` test that
+ran before its auth fix was applied wrote a junk record into production. That specific trap is now
+closed, but the discipline still stands: **verify the diff, then test** — never the other way round.
+
+### Backup and restore
+
+- `yarn backup` — dumps all four leo collections to `backups/<timestamp>/`. Run it before any risky
+  operation, when registration opens, when the season closes, and monthly in between.
+- `yarn restore <folder> --confirm` — restores into `RESTORE_TARGET_URI`. Refuses to run if that
+  matches `MONGODB_URI`, and refuses any collection that already has documents.
+- `backups/` is gitignored. **Those files contain teachers' names, emails and phone numbers — never
+  commit them and keep them off shared drives.**
+
+The Atlas cluster is on the **M0 free tier, which has no backups of any kind**. These scripts are
+the backup strategy, not a stopgap.
+
+### Node and CI
+
+`engines` is pinned to `22.x` and `.nvmrc` contains `22`. Both DigitalOcean and CI honour it.
+
+⚠️ **OpenCode's environment runs Node 20**, so yarn refuses its commands without
+`YARN_IGNORE_ENGINES=1`. That is the pin working as intended, not a fault.
+
+CI (`.github/workflows/ci.yml`) runs `yarn prod:build` on every push to `development` and `master`.
+It deliberately does **not** run lint (87 pre-existing Flow parse errors — see A-15) or tests (they
+cover the dormant blog product only). **We do not use pull requests**: the green tick on
+`development` is the gate before merging to `master`.
 
 ## Definition of done
 
