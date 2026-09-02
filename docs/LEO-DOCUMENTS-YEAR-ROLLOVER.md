@@ -77,3 +77,9 @@ also requires frontend changes in `leo-react` — see
 `year` is not declared in `DocumentSchema` (schema drift documented in `DATA-MODEL.md`).
 This works because Mongoose strict mode applies to writes, not reads. Do NOT "clean up"
 the schema without confirming the frontend still receives `year` and `projects[].items[].audio`.
+
+## Related — the images workstream
+
+The gallery images are imported separately — see `docs/IMPORT-IMAGES.md` (this repo) and
+`leo-react/docs/README/ANNUAL-UPDATE-ROADMAP.md` — keep the two pipelines in step during the
+yearly update.

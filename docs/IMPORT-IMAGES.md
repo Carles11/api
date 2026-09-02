@@ -92,6 +92,27 @@ Selecting `--env prod` prints which host you are about to write to and asks you 
    `findOneAndUpdate(..., { $setOnInsert, upsert: true })` — reruns are idempotent.
 8. Logs per-file results and a final count summary, and keeps going on individual errors.
 
+## Serving the images — why dev blanks but prod works
+
+The script stores `src` URLs of the form `https://lh3.googleusercontent.com/d/{FILE_ID}`.
+Those are correct for production and must not change.
+
+**Confirmed root cause:** Google throttles `lh3.googleusercontent.com` with **HTTP 429
+(text/html)** when the request carries a non-production `Referer` such as `http://localhost:3000`.
+Production works because it sends the live-domain `Referer`
+(`https://www.leo-leo-hessen.com`).
+
+**Effect:** the gallery images render in production but are blank in local/dev — for **all**
+years, and throttling is intermittent, so *which* images go blank changes on every refresh.
+
+**Fix (lives in `leo-react`):** the gallery `<img>` elements must set
+`referrerpolicy="no-referrer"` so the browser sends no `Referer`; Google then serves the images
+(verified: the same IDs that returned 429 return 200 `image/jpeg` with no `Referer`). No
+migration and no URL-scheme change are required — the existing `lh3` URLs remain correct.
+
+> Reminder: production is unaffected by the dev-only throttling; this is a client-side,
+> leo-react change only.
+
 ## No new dependencies
 
 This is a standalone script using only dependencies already in `package.json`
