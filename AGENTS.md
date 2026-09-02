@@ -190,3 +190,4 @@ cover the dormant blog product only). **We do not use pull requests**: the green
 - `docs/DATA-MODEL.md` — collections, schemas, and where they disagree with reality
 - `docs/DEPLOYMENT.md` — DigitalOcean, PM2, env vars
 - `docs/ROADMAP.md` — phasing and reasoning
+- `docs/LEO-DOCUMENTS-YEAR-ROLLOVER.md` — how to duplicate the reading-texts pack into a new year
