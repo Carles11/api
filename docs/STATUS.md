@@ -1,6 +1,6 @@
 # STATUS — where we are, where to pick up
 
-**Last updated:** 17 August 2026
+**Last updated:** 17 September 2026
 **This file is identical in both repos** (`api` and `leo-react`) — the work is cross-repo.
 **Read this first**, then `AGENTS.md`, then `docs/TASKS.md`.
 
@@ -26,8 +26,8 @@ Both repos: all work merged and deployed. No open branches.
 |---|---|---|
 | Host | DigitalOcean App Platform (`api-crix`) | Render (static site `leo-react`) |
 | Deploys from | `master`, autodeploy **on** | `master`, autodeploy **on** |
-| Live URL | https://www.api-crix.com | https://www.leo-leo-hessen.com |
-| Other domains | — | `leo-leo-hessen.com`, `leo-react.onrender.com` |
+| Live URL | https://goldfish-app-cjwxt.ondigitalocean.app | https://www.leo-leo-hessen.com |
+| Other domains | none — `api-crix.com` retired 17 Sep 2026 | `leo-leo-hessen.com`, `leo-react.onrender.com` |
 | Node | pinned `22.x` (`.nvmrc` + `engines`) | **not yet pinned** (task S-6) |
 | CI | ✅ build on push to development/master | **none yet** (task S-6) |
 
@@ -70,6 +70,7 @@ Both repos: all work merged and deployed. No open branches.
 | **S-9** | **The service worker. See below.** |
 | **Q-9** | `Colegios.jsx` empty state — the length check tested the unfiltered array, so past-year schools with none upcoming rendered an empty list with no message. Now filters first, shows a loader. |
 | — | `Item.jsx` guard: `(item.category \|\| []).join(', ')`. A missing field no longer white-screens the admin panel. |
+| **Domain** | **The API's custom domain expired and took registration down** (17 Sep 2026). `api-crix.com` lapsed at Namecheap; `https://www.api-crix.com/…` was baked into the Render build, so every call failed while the database and localhost were fine. Not renewed — the app now answers on App Platform's own hostname, which has valid HTTPS and costs nothing. See `api/docs/DEPLOYMENT.md` → “Hostname”. |
 
 **Also:** DigitalOcean alert policies (Failed Deployment, Failed Domain, CPU >80%, RAM >85%, all
 email); GitHub↔DigitalOcean connection repaired; `api/docs/DEPLOYMENT.md` rewritten from verified
@@ -98,6 +99,7 @@ would not have reached returning teachers at all.
 
 | Task | Agent | Note |
 |---|---|---|
+| **Remove `www.api-crix.com`** | you | DO → Networking → Domains. Still listed and flagged **PRIMARY** while stuck “Configuring”. App Platform currently serves the default hostname directly, but a primary domain is exactly what would start 301-ing the API to a dead host. Also stops the “Failed Domain Configuration” alert. |
 | **S-6** CI for `leo-react` | OpenCode | Same as A-10, plus: split the `test` script — it has `--watch`, so it can never terminate in CI. Pin Node `22.x` + `.nvmrc` there too. |
 | **A-11 / S-10** Sentry | OpenCode | Still zero visibility into runtime errors. Exact `beforeSend` PII scrubber is in the task. |
 | **A-19** `config/production.js` | OpenCode | Has never loaded — two undeclared Babel 6 requires throw and a `catch` swallows it. |
@@ -141,6 +143,11 @@ Run `yarn backup` before starting.
    browser with the console open, and for cache issues one that already has the old state.
 7. **We do not use pull requests.** CI triggers on `push`. The green tick on `development` is the
    gate before merging to `master`.
+8. **An expired domain is indistinguishable from an API outage.** On 17 Sep 2026 registration
+   failed with a generic *“inténtelo más tarde”* and `/colegios-inscritos` rendered empty, while
+   MongoDB held every record and localhost worked perfectly. The tell was in DNS, not the code:
+   the API host still resolved, but *every* subdomain — including invented ones — resolved to the
+   same unrelated IP, which is a registrar parking wildcard. Check DNS before reading code.
 
 ---
 

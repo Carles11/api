@@ -1,14 +1,14 @@
 # Deployment — api
 
 Verified against the DigitalOcean dashboard, 16 Aug 2026. No inferred fields remain except the two
-marked **OPEN**.
+marked **OPEN**. Hostname updated 17 Sep 2026 — see “Hostname” below.
 
 ## Where it runs
 
 | | |
 |---|---|
 | Host | **DigitalOcean App Platform** — *not* a Droplet |
-| App | `api-crix` · project `carles` · region **FRA1** · https://www.api-crix.com |
+| App | `api-crix` · project `carles` · region **FRA1** · https://goldfish-app-cjwxt.ondigitalocean.app |
 | Component | `api` — Web Service, 1 instance, $5/mo (512 MB RAM, 1 shared vCPU) |
 | Repo | `github.com/Carles11/api`, source directory `/` |
 | **Deploys from** | **`master`** |
@@ -16,6 +16,30 @@ marked **OPEN**.
 | Buildpack stack | Ubuntu 22.04 · Custom Build Command · Procfile · Node.js |
 | Public HTTP port | 8080 (App Platform injects `PORT`) |
 | Node version | Buildpack default is **22.x**; controlled by `engines` in `package.json` |
+
+### Hostname — the app has no custom domain
+
+The API is reached at **`https://goldfish-app-cjwxt.ondigitalocean.app`**, the hostname App Platform
+assigns every app. It is free, has a valid certificate, and needs no DNS of our own.
+
+There used to be a custom domain, `www.api-crix.com`. It expired at Namecheap on 16 Sep 2026 and was
+deliberately **not renewed** — it served nothing but this API, and the schools never saw it. The
+lapse took registration down for a day: DNS handed the name to a registrar parking wildcard, so the
+frontend's calls simply failed. Fixed by repointing `REACT_APP_API_URL` / `REACT_APP_AUTH_URL` in
+Render at the hostname above and rebuilding. No API code changed — the CORS allowlist names
+*frontend* origins, which did not move.
+
+**Do not try to point the frontend at an IP address instead.** Two independent reasons:
+
+1. App Platform is not a Droplet. There is no IP that belongs to this app — traffic is routed by
+   Host header behind a shared edge, so an IP either lands on someone else's app or 404s, and it can
+   change without notice.
+2. The frontend is served over HTTPS. `http://<ip>/` is blocked as mixed content, and `https://<ip>/`
+   fails certificate validation — no public CA issues certificates for bare IP addresses.
+
+**The one caveat:** this hostname is tied to the app's identity. Delete and recreate the app and it
+changes, which means another Render rebuild. If a custom domain is ever wanted again, add it in
+Networking → Domains and point a CNAME at the hostname above.
 
 ### ⚠️ App Platform redeploys on its own
 
@@ -123,9 +147,9 @@ preview URLs, the staging frontend). Getting this wrong takes the live site down
 5. Watch the build in the DO dashboard (Activity tab). A failure leaves the previous version live
    and emails you.
 6. Smoke test:
-   - `curl https://www.api-crix.com/api/leo/documents` — returns the current edition **with its
-     `year` field**
-   - `curl https://www.api-crix.com/api/leo/schools` — returns the school list
+   - `curl https://goldfish-app-cjwxt.ondigitalocean.app/api/leo/documents` — returns the current
+     edition **with its `year` field**
+   - `curl https://goldfish-app-cjwxt.ondigitalocean.app/api/leo/schools` — returns the school list
    - Sign in at `/admin` on https://www.leo-leo-hessen.com
    - Register a test school, confirm it appears on `/colegios-inscritos`, then delete it in Atlas
 
