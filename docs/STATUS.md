@@ -70,7 +70,7 @@ Both repos: all work merged and deployed. No open branches.
 | **S-9** | **The service worker. See below.** |
 | **Q-9** | `Colegios.jsx` empty state — the length check tested the unfiltered array, so past-year schools with none upcoming rendered an empty list with no message. Now filters first, shows a loader. |
 | — | `Item.jsx` guard: `(item.category \|\| []).join(', ')`. A missing field no longer white-screens the admin panel. |
-| **Domain** | **The API's custom domain expired and took registration down** (17 Sep 2026). `api-crix.com` lapsed at Namecheap; `https://www.api-crix.com/…` was baked into the Render build, so every call failed while the database and localhost were fine. Not renewed — the app now answers on App Platform's own hostname, which has valid HTTPS and costs nothing. See `api/docs/DEPLOYMENT.md` → “Hostname”. |
+| **Domain** | **The API's custom domain expired and took registration down** (17 Sep 2026). `api-crix.com` lapsed at Namecheap; `https://www.api-crix.com/…` was baked into the Render build, so every call failed while the database and localhost were fine. Not renewed — the app now answers on App Platform's own hostname, which has valid HTTPS and costs nothing. The dead domain was removed from DO → Networking → Domains the same day, so nothing is left flagged PRIMARY. See `api/docs/DEPLOYMENT.md` → “Hostname”. |
 
 **Also:** DigitalOcean alert policies (Failed Deployment, Failed Domain, CPU >80%, RAM >85%, all
 email); GitHub↔DigitalOcean connection repaired; `api/docs/DEPLOYMENT.md` rewritten from verified
@@ -99,7 +99,6 @@ would not have reached returning teachers at all.
 
 | Task | Agent | Note |
 |---|---|---|
-| **Remove `www.api-crix.com`** | you | DO → Networking → Domains. Still listed and flagged **PRIMARY** while stuck “Configuring”. App Platform currently serves the default hostname directly, but a primary domain is exactly what would start 301-ing the API to a dead host. Also stops the “Failed Domain Configuration” alert. |
 | **S-6** CI for `leo-react` | OpenCode | Same as A-10, plus: split the `test` script — it has `--watch`, so it can never terminate in CI. Pin Node `22.x` + `.nvmrc` there too. |
 | **A-11 / S-10** Sentry | OpenCode | Still zero visibility into runtime errors. Exact `beforeSend` PII scrubber is in the task. |
 | **A-19** `config/production.js` | OpenCode | Has never loaded — two undeclared Babel 6 requires throw and a `catch` swallows it. |
