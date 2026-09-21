@@ -1,6 +1,6 @@
 # STATUS — where we are, where to pick up
 
-**Last updated:** 17 September 2026
+**Last updated:** 21 September 2026
 **This file is identical in both repos** (`api` and `leo-react`) — the work is cross-repo.
 **Read this first**, then `AGENTS.md`, then `docs/TASKS.md`.
 
@@ -26,8 +26,8 @@ Both repos: all work merged and deployed. No open branches.
 |---|---|---|
 | Host | DigitalOcean App Platform (`api-crix`) | Render (static site `leo-react`) |
 | Deploys from | `master`, autodeploy **on** | `master`, autodeploy **on** |
-| Live URL | https://goldfish-app-cjwxt.ondigitalocean.app | https://www.leo-leo-hessen.com |
-| Other domains | none — `api-crix.com` retired 17 Sep 2026 | `leo-leo-hessen.com`, `leo-react.onrender.com` |
+| Live URL | https://api.leo-leo-hessen.com | https://www.leo-leo-hessen.com |
+| Other domains | `goldfish-app-cjwxt.ondigitalocean.app` (App Platform fallback) | `leo-leo-hessen.com`, `leo-react.onrender.com` |
 | Node | pinned `22.x` (`.nvmrc` + `engines`) | **not yet pinned** (task S-6) |
 | CI | ✅ build on push to development/master | **none yet** (task S-6) |
 
@@ -70,7 +70,7 @@ Both repos: all work merged and deployed. No open branches.
 | **S-9** | **The service worker. See below.** |
 | **Q-9** | `Colegios.jsx` empty state — the length check tested the unfiltered array, so past-year schools with none upcoming rendered an empty list with no message. Now filters first, shows a loader. |
 | — | `Item.jsx` guard: `(item.category \|\| []).join(', ')`. A missing field no longer white-screens the admin panel. |
-| **Domain** | **The API's custom domain expired and took registration down** (17 Sep 2026). `api-crix.com` lapsed at Namecheap; `https://www.api-crix.com/…` was baked into the Render build, so every call failed while the database and localhost were fine. Not renewed — the app now answers on App Platform's own hostname, which has valid HTTPS and costs nothing. The dead domain was removed from DO → Networking → Domains the same day, so nothing is left flagged PRIMARY. See `api/docs/DEPLOYMENT.md` → “Hostname”. |
+| **Domain** | **Two outages, four days apart, both about the API's hostname** (17–21 Sep 2026). First `api-crix.com` expired at Namecheap and was not renewed, which took registration down for a day. The app then ran on App Platform's own `*.ondigitalocean.app` hostname — until AVG began blocking that shared domain as a scam site and locked out every school running AVG or Avast. Now on **`api.leo-leo-hessen.com`**, a subdomain of the site's own auto-renewing domain, with the certificate managed by DO. The dead domain's App Platform binding, DNS zone and a leftover 301 redirect rule are all deleted. See `api/docs/DEPLOYMENT.md` → “Hostname”. |
 
 **Also:** DigitalOcean alert policies (Failed Deployment, Failed Domain, CPU >80%, RAM >85%, all
 email); GitHub↔DigitalOcean connection repaired; `api/docs/DEPLOYMENT.md` rewritten from verified
@@ -147,6 +147,12 @@ Run `yarn backup` before starting.
    MongoDB held every record and localhost worked perfectly. The tell was in DNS, not the code:
    the API host still resolved, but *every* subdomain — including invented ones — resolved to the
    same unrelated IP, which is a registrar parking wildcard. Check DNS before reading code.
+9. **A vendor's shared hostname carries other people's reputation.** Running the API on
+   `*.ondigitalocean.app` was free and had valid HTTPS, and it still failed — AVG blocklists
+   that shared domain wholesale, so schools got a full-screen *scam site* warning instead of
+   a registration form. A hostname is part of the product's trust surface, not plumbing. Put
+   a name we control in front of anything a browser talks to, and prefer a subdomain of a
+   domain we already auto-renew over a new registration nobody will remember to pay for.
 
 ---
 

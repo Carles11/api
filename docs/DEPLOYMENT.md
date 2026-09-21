@@ -1,14 +1,14 @@
 # Deployment — api
 
 Verified against the DigitalOcean dashboard, 16 Aug 2026. No inferred fields remain except the two
-marked **OPEN**. Hostname updated 17 Sep 2026 — see “Hostname” below.
+marked **OPEN**. Hostname last changed 21 Sep 2026 — see “Hostname” below.
 
 ## Where it runs
 
 | | |
 |---|---|
 | Host | **DigitalOcean App Platform** — *not* a Droplet |
-| App | `api-crix` · project `carles` · region **FRA1** · https://goldfish-app-cjwxt.ondigitalocean.app |
+| App | `api-crix` · project `carles` · region **FRA1** · https://api.leo-leo-hessen.com |
 | Component | `api` — Web Service, 1 instance, $5/mo (512 MB RAM, 1 shared vCPU) |
 | Repo | `github.com/Carles11/api`, source directory `/` |
 | **Deploys from** | **`master`** |
@@ -17,19 +17,38 @@ marked **OPEN**. Hostname updated 17 Sep 2026 — see “Hostname” below.
 | Public HTTP port | 8080 (App Platform injects `PORT`) |
 | Node version | Buildpack default is **22.x**; controlled by `engines` in `package.json` |
 
-### Hostname — the app has no custom domain
+### Hostname — `api.leo-leo-hessen.com`
 
-The API is reached at **`https://goldfish-app-cjwxt.ondigitalocean.app`**, the hostname App Platform
-assigns every app. It is free, has a valid certificate, and needs no DNS of our own.
+The API is reached at **`https://api.leo-leo-hessen.com`**, a subdomain of the site's own domain.
 
-There used to be a custom domain, `www.api-crix.com`. It expired at Namecheap on 16 Sep 2026 and was
-deliberately **not renewed** — it served nothing but this API, and the schools never saw it. The
-lapse took registration down for a day: DNS handed the name to a registrar parking wildcard, so the
-frontend's calls simply failed. Fixed by repointing `REACT_APP_API_URL` / `REACT_APP_AUTH_URL` in
-Render at the hostname above and rebuilding. No API code changed — the CORS allowlist names
-*frontend* origins, which did not move.
+| Piece | Where | Value |
+|---|---|---|
+| CNAME `api` | Namecheap, zone `leo-leo-hessen.com` (BasicDNS — `dns1`/`dns2.registrar-servers.com`) | `goldfish-app-cjwxt.ondigitalocean.app` |
+| Custom domain | App Platform → Networking → Domains | `api.leo-leo-hessen.com`, PRIMARY, certificate issued and renewed by DO |
+| Fallback | same place | `goldfish-app-cjwxt.ondigitalocean.app`, still Active |
 
-**Do not try to point the frontend at an IP address instead.** Two independent reasons:
+This costs nothing. `leo-leo-hessen.com` is already ours and already on auto-renew, and App Platform
+issues and renews the certificate itself. **Nothing in this arrangement expires on its own** — which
+is the whole point, given the two outages below.
+
+**Why not App Platform's own hostname.** For four days in September 2026 the frontend called
+`goldfish-app-cjwxt.ondigitalocean.app` directly. AVG's Web Shield started blocking it as
+`URL:Agent-D [ScamT]` — a *technical support scam* verdict — and schools running AVG or Avast (the
+same engine) could not register at all; they got a full-screen security warning instead. Nothing was
+wrong with the app. `*.ondigitalocean.app` is a shared domain carrying thousands of apps, plenty of
+them fraudulent, and consumer antivirus blocklists it wholesale; an auto-generated name like
+`goldfish-app-cjwxt` scores worse still. **A shared vendor hostname carries other people's
+reputation.** Put a name we control in front of anything a browser talks to.
+
+**Why not `api-crix.com`.** It expired at Namecheap on 16 Sep 2026 and was deliberately not renewed
+— it served nothing but this API, the schools never saw it, and it was one more renewal to forget.
+The lapse took registration down for a day: DNS handed the name to a registrar parking wildcard and
+every frontend call failed. Its DNS zone in DO, and a leftover 301 redirect rule still pointing at
+it, were both deleted on 21 Sep 2026. That rule was inert (the component routing rule caught every
+path first) but it was aimed at a domain heading for public re-registration, which is not a thing to
+leave lying in a live app.
+
+**Do not point the frontend at an IP address.** Two independent reasons:
 
 1. App Platform is not a Droplet. There is no IP that belongs to this app — traffic is routed by
    Host header behind a shared edge, so an IP either lands on someone else's app or 404s, and it can
@@ -37,9 +56,11 @@ Render at the hostname above and rebuilding. No API code changed — the CORS al
 2. The frontend is served over HTTPS. `http://<ip>/` is blocked as mixed content, and `https://<ip>/`
    fails certificate validation — no public CA issues certificates for bare IP addresses.
 
-**The one caveat:** this hostname is tied to the app's identity. Delete and recreate the app and it
-changes, which means another Render rebuild. If a custom domain is ever wanted again, add it in
-Networking → Domains and point a CNAME at the hostname above.
+**Changing the hostname again** is two steps and the order matters: get the new name serving HTTPS
+*first* (DNS record → add the domain in App Platform → confirm it returns JSON in a browser), and
+only then repoint `REACT_APP_API_URL` / `REACT_APP_AUTH_URL` in Render and rebuild. Doing it the
+other way round swaps a partial outage for a total one. No API code is involved — the CORS allowlist
+names *frontend* origins, which do not move.
 
 ### ⚠️ App Platform redeploys on its own
 
@@ -115,12 +136,13 @@ read is a workaround for the same root cause as the OPEN item above.
 
 ## Alerts
 
-Configured 16 Aug 2026 (App-level → Alert Policies):
+Configured 16 Aug 2026, re-checked 21 Sep 2026 (App-level → Alert Policies):
 
 | Policy | Delivery | Enabled |
 |---|---|---|
 | Failed Deployment | Email | ✅ |
 | Failed Domain Configuration | Email | ✅ |
+| Successful Deployment | Email | ✅ |
 | CPU above 80% for 5 min | Email | ✅ |
 | RAM above 85% for 5 min | Email | ✅ |
 
@@ -147,9 +169,9 @@ preview URLs, the staging frontend). Getting this wrong takes the live site down
 5. Watch the build in the DO dashboard (Activity tab). A failure leaves the previous version live
    and emails you.
 6. Smoke test:
-   - `curl https://goldfish-app-cjwxt.ondigitalocean.app/api/leo/documents` — returns the current
-     edition **with its `year` field**
-   - `curl https://goldfish-app-cjwxt.ondigitalocean.app/api/leo/schools` — returns the school list
+   - `curl https://api.leo-leo-hessen.com/api/leo/documents` — returns the current edition **with its
+     `year` field**
+   - `curl https://api.leo-leo-hessen.com/api/leo/schools` — returns the school list
    - Sign in at `/admin` on https://www.leo-leo-hessen.com
    - Register a test school, confirm it appears on `/colegios-inscritos`, then delete it in Atlas
 
