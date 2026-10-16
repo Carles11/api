@@ -1,6 +1,6 @@
 # STATUS — where we are, where to pick up
 
-**Last updated:** 21 September 2026
+**Last updated:** 16 October 2026
 **This file is identical in both repos** (`api` and `leo-react`) — the work is cross-repo.
 **Read this first**, then `AGENTS.md`, then `docs/TASKS.md`.
 
@@ -40,6 +40,20 @@ Both repos: all work merged and deployed. No open branches.
 
 ⚠️ **Pushing `master` in either repo deploys immediately.** Workflow: work on a branch → merge to
 `development` → push → **wait for the green CI tick** → merge to `master` → push (this deploys).
+
+---
+
+## 2b. Incident 16 Oct 2026 — `leo-leo-hessen.com` expired (resolved same day)
+
+Downtime Monkey reported web **and** API down. Cause: the domain itself expired at
+**18:49 UTC (15:49 Santiago)**, its 8th anniversary; ten minutes later Namecheap moved it to its
+parking nameservers (`dns101`/`dns102.registrar-servers.com`). `www`, `api` and invented
+subdomains all resolved to the same parking IPs (`104.219.250.37`, `2.59.170.20`) — lesson 8 again.
+Render and DigitalOcean were never at fault. Carles renewed it in Namecheap (grace period) about an
+hour later; `api` CNAME → `goldfish-app-cjwxt.ondigitalocean.app` confirmed resolving again.
+
+**This contradicts the docs**, which called the domain "auto-renewing". Either auto-renew was off or
+the payment failed — see "Pick up here".
 
 ---
 
@@ -99,6 +113,7 @@ would not have reached returning teachers at all.
 
 | Task | Agent | Note |
 |---|---|---|
+| **Domain auto-renew** ⚠️ | you | Namecheap → Domain List → `leo-leo-hessen.com`: confirm **Auto-Renew is ON**, the payment card is valid past Oct 2027, and the account email is one you read. Put a calendar reminder for **1 Oct 2027** (two weeks before the 16 Oct expiry). Then fix the "auto-renewing" wording in `api/docs/DEPLOYMENT.md` → “Hostname” to state what was verified. |
 | **S-6** CI for `leo-react` | OpenCode | Same as A-10, plus: split the `test` script — it has `--watch`, so it can never terminate in CI. Pin Node `22.x` + `.nvmrc` there too. |
 | **A-11 / S-10** Sentry | OpenCode | Still zero visibility into runtime errors. Exact `beforeSend` PII scrubber is in the task. |
 | **A-19** `config/production.js` | OpenCode | Has never loaded — two undeclared Babel 6 requires throw and a `catch` swallows it. |
@@ -153,6 +168,12 @@ Run `yarn backup` before starting.
    a registration form. A hostname is part of the product's trust surface, not plumbing. Put
    a name we control in front of anything a browser talks to, and prefer a subdomain of a
    domain we already auto-renew over a new registration nobody will remember to pay for.
+10. **"Auto-renewing" is a claim, not a fact, until you have looked at the registrar.** On 16 Oct
+    2026 the domain that lesson 9 relied on expired on its anniversary and took down web *and* API
+    at once, during open registration. Putting everything under one domain removes many renewals
+    but makes the one remaining renewal a single point of failure. When web and API fail together,
+    check the shared domain first (RDAP expiry date + whether invented subdomains resolve), and
+    keep an independent calendar reminder two weeks before every expiry.
 
 ---
 
